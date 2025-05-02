@@ -1,0 +1,101 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage{url}
+\usepackage{parskip}
+\RequirePackage{color}
+\RequirePackage{graphicx}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage[scale=0.9]{geometry}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\usepackage{supertabular}
+\usepackage{tabularx}
+\newlength{\fullcollw}
+\setlength{\fullcollw}{0.47\textwidth}
+\usepackage{titlesec}
+\usepackage{multicol}
+\usepackage{multirow}
+\titleformat{\section}{\Large\scshape\raggedright}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{10pt}{10pt}
+\usepackage[style=authoryear,sorting=ynt, maxbibnames=2]{biblatex}
+\usepackage[unicode, draft=false]{hyperref}
+\definecolor{linkcolour}{rgb}{0,0.2,0.6}
+\hypersetup{colorlinks,breaklinks,urlcolor=linkcolour,linkcolor=linkcolour}
+\addbibresource{citations.bib}
+\usepackage{fontawesome5}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{tabularx}{\linewidth}{@{} C @{}}
+\Huge{ {{ name }} } \\[7.5pt]
+{% if github %}
+\href{ {{ github }} }{\raisebox{-0.05\height}\faGithub}\ 
+{% endif %}
+{% if linkedin %}
+\href{ {{ linkedin }} }{\raisebox{-0.05\height}\faLinkedin}\ 
+{% endif %}
+{% if email %}
+\href{mailto:{{ email }}}{\raisebox{-0.05\height}\faEnvelope\ {{ email }}}\ 
+{% endif %}
+{% if phone %}
+\href{tel:{{ phone }}}{\raisebox{-0.05\height}\faMobile\ {{ phone }}} 
+{% endif %}
+\\
+\end{tabularx}
+
+\section{Summary}
+{{ summary }}
+
+\section{Work Experience}
+{% for exp in work_experience %}
+\begin{tabularx}{\linewidth}{ @{}l r@{} }
+\textbf{ {{ exp.title }} } at {{ exp.company }} & \hfill {{ exp.duration }} \\[3.75pt]
+\multicolumn{2}{@{}X@{}}{
+\begin{minipage}[t]{\linewidth}
+    {{ exp.description }}
+    {% if exp.responsibilities %}
+    \begin{itemize}[nosep,after=\strut, leftmargin=1em, itemsep=3pt]
+    {% for resp in exp.responsibilities %}
+        \item[--] {{ resp }}
+    {% endfor %}
+    \end{itemize}
+    {% endif %}
+\end{minipage}
+}
+\end{tabularx}
+{% endfor %}
+
+\section{Projects}
+{% for project in projects %}
+\begin{tabularx}{\linewidth}{ @{}l r@{} }
+\textbf{ {{ project.name }} } & \hfill {% if project.link %}\href{ {{ project.link }} }{Link}{% endif %} \\[3.75pt]
+\multicolumn{2}{@{}X@{}}{ {{ project.description }} } \\
+\end{tabularx}
+{% endfor %}
+
+\section{Education}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+{% for edu in education %}
+{{ edu.year }} & {{ edu.degree }} at \textbf{ {{ edu.institution }} } {% if edu.gpa %}(GPA: {{ edu.gpa }}){% endif %} \\
+{% endfor %}
+\end{tabularx}
+
+\section{Publications}
+\begin{refsection}[citations.bib]
+\nocite{*}
+\printbibliography[heading=none]
+\end{refsection}
+
+\section{Skills}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+{% for skill in skills %}
+{{ skill.title }} & {{ skill.list | join(", ") }} \\
+{% endfor %}
+\end{tabularx}
+
+\vfill
+\center{\footnotesize Last updated: \today}
+
+\end{document}

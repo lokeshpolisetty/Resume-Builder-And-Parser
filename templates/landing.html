@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Wizard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Resume Wizard</div>
+            <ul>
+                <li><a href="{{ url_for('logout') }}" aria-label="Log out">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="hero">
+            <h1>Welcome to Resume Wizard</h1>
+            <p>Choose your path: analyze your existing resume or build a new one from scratch.</p>
+            <div class="options">
+                <a href="{{ url_for('parser') }}" class="card" aria-label="Analyze your resume">
+                    <h2>Resume Parser</h2>
+                    <p>Upload your resume to get an ATS score and detailed analysis.</p>
+                    <span class="btn">Start Parsing</span>
+                </a>
+                <a href="{{ url_for('builder') }}" class="card" aria-label="Build a new resume">
+                    <h2>Resume Builder</h2>
+                    <p>Create a professional resume with AI-powered enhancements.</p>
+                    <span class="btn">Start Building</span>
+                </a>
+            </div>
+        </section>
+    </main>
+    <script src="{{ url_for('static', filename='lib/gsap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
+</body>
+</html>

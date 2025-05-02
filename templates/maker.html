@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoCV Resume Builder</title>
+    <link rel="stylesheet" href="/static/css/maker.css">
+    <style>
+      /* Inline styles to support side-by-side layout */
+      .flex-container {
+          display: flex;
+          gap: 2rem;
+      }
+      .form-container, .preview-container {
+          width: 50%;
+      }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AutoCV Resume Builder</h1>
+        <div class="flex-container">
+            <div class="form-container">
+                <form id="resumeForm">
+                    <h2>Personal Info</h2>
+                    <input name="name" placeholder="Full Name" required>
+                    <input name="email" placeholder="Email" required>
+                    <input name="phone" placeholder="Phone">
+                    <input name="github" placeholder="GitHub URL">
+                    <input name="linkedin" placeholder="LinkedIn URL">
+                    <h2>Summary</h2>
+                    <textarea name="summary" rows="3" placeholder="Professional Summary"></textarea>
+                    <h2>Experience</h2>
+                    <div id="experience"></div>
+                    <button type="button" onclick="addExperience()">Add Experience</button>
+                    <h2>Education</h2>
+                    <div id="education"></div>
+                    <button type="button" onclick="addEducation()">Add Education</button>
+                    <h2>Projects</h2>
+                    <div id="projects"></div>
+                    <button type="button" onclick="addProject()">Add Project</button>
+                    <h2>Skills</h2>
+                    <div>
+                        <input name="skills_group1[]" placeholder="Technical Skill">
+                        <button type="button" onclick="addSkill('skills_group1')">Add Technical Skill</button>
+                    </div>
+                    <div>
+                        <input name="skills_group2[]" placeholder="Soft Skill">
+                        <button type="button" onclick="addSkill('skills_group2')">Add Soft Skill</button>
+                    </div>
+                    <button type="submit" name="preview">Preview Resume</button>
+                    <button type="submit" name="export">Download PDF</button>
+                </form>
+            </div>
+            <div class="preview-container">
+                <div id="preview" style="display:none">
+                    <h2>Resume Preview</h2>
+                    <div id="previewContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/maker.js"></script>
+</body>
+</html>

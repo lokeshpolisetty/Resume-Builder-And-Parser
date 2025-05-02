@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Parser</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/parser.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Resume Wizard</div>
+            <ul>
+                <li><a href="{{ url_for('landing') }}">Home</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="parser">
+            <h1>Resume Parser</h1>
+            <p>Upload your resume (PDF only) to analyze its ATS compatibility.</p>
+            <form id="parserForm" method="POST" enctype="multipart/form-data">
+                <input type="file" name="resume" accept=".pdf" required aria-label="Upload resume PDF">
+                <button type="submit">Analyze Resume</button>
+            </form>
+            {% if error %}
+                <div class="error">{{ error }}</div>
+            {% endif %}
+            {% if data %}
+                <div class="results">
+                    <h2>Analysis Results</h2>
+                    <p><strong>ATS Score:</strong> {{ score }} / 100</p>
+                    <h3>Personal Information</h3>
+                    <ul>
+                        <li><strong>Name:</strong> {{ data.personal_info.full_name }}</li>
+                        <li><strong>Email:</strong> {{ data.personal_info.email_id }}</li>
+                        {% if data.personal_info.phone %}
+                            <li><strong>Phone:</strong> {{ data.personal_info.phone }}</li>
+                        {% endif %}
+                        {% if data.personal_info.location %}
+                            <li><strong>Location:</strong> {{ data.personal_info.location }}</li>
+                        {% endif %}
+                        {% if data.personal_info.github_portfolio %}
+                            <li><strong>GitHub:</strong> <a href="{{ data.personal_info.github_portfolio }}">{{ data.personal_info.github_portfolio }}</a></li>
+                        {% endif %}
+                        {% if data.personal_info.linkedin_id %}
+                            <li><strong>LinkedIn:</strong> <a href="{{ data.personal_info.linkedin_id }}">{{ data.personal_info.linkedin_id }}</a></li>
+                        {% endif %}
+                    </ul>
+                    {% if data.professional_summary %}
+                        <h3>Professional Summary</h3>
+                        <p>{{ data.professional_summary }}</p>
+                    {% endif %}
+                    {% if data.employment_details %}
+                        <h3>Employment Details</h3>
+                        {% for job in data.employment_details %}
+                            <div class="job">
+                                <h4>{{ job.title }} at {{ job.company }}</h4>
+                                <p>{{ job.duration }}</p>
+                                <h5>Responsibilities</h5>
+                                <ul>
+                                    {% for resp in job.responsibilities %}
+                                        <li>{{ resp }}</li>
+                                    {% endfor %}
+                                </ul>
+                                <h5>Achievements</h5>
+                                <ul>
+                                    {% for ach in job.achievements %}
+                                        <li>{{ ach }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    {% if data.education %}
+                        <h3>Education</h3>
+                        {% for edu in data.education %}
+                            <p>{{ edu.degree }} from {{ edu.institution }} ({{ edu.year }}) {% if edu.gpa %} - GPA: {{ edu.gpa }}{% endif %}</p>
+                        {% endfor %}
+                    {% endif %}
+                    {% if data.projects %}
+                        <h3>Projects</h3>
+                        {% for proj in data.projects %}
+                            <div class="project">
+                                <h4>{{ proj.name }}</h4>
+                                <p>{{ proj.description }}</p>
+                                <p><strong>Technologies:</strong> {{ proj.technologies | join(', ') }}</p>
+                                {% if proj.link %}
+                                    <p><a href="{{ proj.link }}">Project Link</a></p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    {% if data.technical_skills %}
+                        <h3>Technical Skills</h3>
+                        <p>{{ data.technical_skills | join(', ') }}</p>
+                    {% endif %}
+                    {% if data.soft_skills %}
+                        <h3>Soft Skills</h3>
+                        <p>{{ data.soft_skills | join(', ') }}</p>
+                    {% endif %}
+                    {% if data.certifications %}
+                        <h3>Certifications</h3>
+                        {% for cert in data.certifications %}
+                            <p>{{ cert.name }} from {{ cert.organization }} {% if cert.date %} ({{ cert.date }}) {% endif %}</p>
+                        {% endfor %}
+                    {% endif %}
+                    {% if data.extracted_links %}
+                        <h3>Extracted Links</h3>
+                        <ul>
+                            {% for link in data.extracted_links %}
+                                <li><a href="{{ link }}">{{ link }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </section>
+    </main>
+    <script src="{{ url_for('static', filename='lib/gsap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/parser.js') }}"></script>
+</body>
+</html>

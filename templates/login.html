@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Resume Wizard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+<body>
+    <main>
+        <div class="login-container">
+            <h1>Login</h1>
+            {% if error %}
+                <div class="error">{{ error }}</div>
+            {% endif %}
+            <form method="POST">
+                <input type="text" name="username" placeholder="Username" required aria-label="Username">
+                <input type="password" name="password" placeholder="Password" required aria-label="Password">
+                <button type="submit">Login</button>
+            </form>
+            <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
+            <p>
+                <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+            </p>
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='lib/gsap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+</body>
+</html>
