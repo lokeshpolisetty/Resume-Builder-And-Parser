@@ -1,65 +1,403 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoCV Resume Builder</title>
-    <link rel="stylesheet" href="/static/css/maker.css">
-    <style>
-      /* Inline styles to support side-by-side layout */
-      .flex-container {
-          display: flex;
-          gap: 2rem;
-      }
-      .form-container, .preview-container {
-          width: 50%;
-      }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>AutoCV Resume Builder</h1>
-        <div class="flex-container">
-            <div class="form-container">
-                <form id="resumeForm">
-                    <h2>Personal Info</h2>
-                    <input name="name" placeholder="Full Name" required>
-                    <input name="email" placeholder="Email" required>
-                    <input name="phone" placeholder="Phone">
-                    <input name="github" placeholder="GitHub URL">
-                    <input name="linkedin" placeholder="LinkedIn URL">
-                    <h2>Summary</h2>
-                    <textarea name="summary" rows="3" placeholder="Professional Summary"></textarea>
-                    <h2>Experience</h2>
-                    <div id="experience"></div>
-                    <button type="button" onclick="addExperience()">Add Experience</button>
-                    <h2>Education</h2>
-                    <div id="education"></div>
-                    <button type="button" onclick="addEducation()">Add Education</button>
-                    <h2>Projects</h2>
-                    <div id="projects"></div>
-                    <button type="button" onclick="addProject()">Add Project</button>
-                    <h2>Skills</h2>
-                    <div>
-                        <input name="skills_group1[]" placeholder="Technical Skill">
-                        <button type="button" onclick="addSkill('skills_group1')">Add Technical Skill</button>
+{% extends "base.html" %}
+
+{% block title %}Resume Builder - Resume Wizard{% endblock %}
+
+{% block content %}
+<div class="builder-section py-5">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center mb-4">
+                    <div class="builder-icon bg-gradient-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-plus-circle fs-4"></i>
                     </div>
-                    <div>
-                        <input name="skills_group2[]" placeholder="Soft Skill">
-                        <button type="button" onclick="addSkill('skills_group2')">Add Soft Skill</button>
-                    </div>
-                    <button type="submit" name="preview">Preview Resume</button>
-                    <button type="submit" name="export">Download PDF</button>
-                </form>
+                    <h1 class="display-6 fw-bold mb-2">Resume Builder</h1>
+                    <p class="text-muted">Create your professional resume with real-time preview</p>
+                </div>
             </div>
-            <div class="preview-container">
-                <div id="preview" style="display:none">
-                    <h2>Resume Preview</h2>
-                    <div id="previewContent"></div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Form Column -->
+            <div class="col-lg-6">
+                <div class="card shadow border-0 h-100">
+                    <div class="card-header bg-gradient-primary text-white">
+                        <h3 class="mb-0">
+                            <i class="bi bi-pencil-square me-2"></i>Resume Information
+                        </h3>
+                    </div>
+                    <div class="card-body p-4" style="max-height: 80vh; overflow-y: auto;">
+                        <form id="resumeForm">
+                            <!-- Personal Information -->
+                            <div class="section-card mb-4">
+                                <h4 class="section-title">
+                                    <i class="bi bi-person-fill me-2"></i>Personal Information
+                                </h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Full Name *</label>
+                                        <input type="text" class="form-control" name="name" placeholder="John Doe" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Email *</label>
+                                        <input type="email" class="form-control" name="email" placeholder="john@example.com" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Phone</label>
+                                        <input type="tel" class="form-control" name="phone" placeholder="+1 (555) 123-4567">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">GitHub URL</label>
+                                        <input type="url" class="form-control" name="github" placeholder="https://github.com/username">
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label class="form-label">LinkedIn URL</label>
+                                        <input type="url" class="form-control" name="linkedin" placeholder="https://linkedin.com/in/username">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Professional Summary -->
+                            <div class="section-card mb-4">
+                                <h4 class="section-title">
+                                    <i class="bi bi-file-text me-2"></i>Professional Summary
+                                </h4>
+                                <textarea class="form-control" name="summary" rows="4" placeholder="Write a compelling professional summary that highlights your key achievements and career objectives..."></textarea>
+                            </div>
+
+                            <!-- Experience -->
+                            <div class="section-card mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h4 class="section-title mb-0">
+                                        <i class="bi bi-briefcase-fill me-2"></i>Work Experience
+                                    </h4>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addExperience()">
+                                        <i class="bi bi-plus me-1"></i>Add Experience
+                                    </button>
+                                </div>
+                                <div id="experience"></div>
+                            </div>
+
+                            <!-- Education -->
+                            <div class="section-card mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h4 class="section-title mb-0">
+                                        <i class="bi bi-mortarboard-fill me-2"></i>Education
+                                    </h4>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addEducation()">
+                                        <i class="bi bi-plus me-1"></i>Add Education
+                                    </button>
+                                </div>
+                                <div id="education"></div>
+                            </div>
+
+                            <!-- Projects -->
+                            <div class="section-card mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h4 class="section-title mb-0">
+                                        <i class="bi bi-code-square me-2"></i>Projects
+                                    </h4>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addProject()">
+                                        <i class="bi bi-plus me-1"></i>Add Project
+                                    </button>
+                                </div>
+                                <div id="projects"></div>
+                            </div>
+
+                            <!-- Skills -->
+                            <div class="section-card mb-4">
+                                <h4 class="section-title">
+                                    <i class="bi bi-gear-fill me-2"></i>Skills
+                                </h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Technical Skills</label>
+                                        <div class="skills-group" id="technicalSkills">
+                                            <input type="text" class="form-control mb-2" name="skills_group1[]" placeholder="JavaScript">
+                                        </div>
+                                        <button type="button" class="btn btn-outline-success btn-sm" onclick="addSkill('skills_group1')">
+                                            <i class="bi bi-plus me-1"></i>Add Technical Skill
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Soft Skills</label>
+                                        <div class="skills-group" id="softSkills">
+                                            <input type="text" class="form-control mb-2" name="skills_group2[]" placeholder="Leadership">
+                                        </div>
+                                        <button type="button" class="btn btn-outline-success btn-sm" onclick="addSkill('skills_group2')">
+                                            <i class="bi bi-plus me-1"></i>Add Soft Skill
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" name="preview" class="btn btn-outline-primary">
+                                    <i class="bi bi-eye me-2"></i>Preview
+                                </button>
+                                <button type="submit" name="export" class="btn btn-success">
+                                    <i class="bi bi-download me-2"></i>Download PDF
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Column -->
+            <div class="col-lg-6">
+                <div class="card shadow border-0 h-100">
+                    <div class="card-header bg-light">
+                        <h3 class="mb-0">
+                            <i class="bi bi-eye me-2"></i>Live Preview
+                        </h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="preview" class="preview-container" style="display: none;">
+                            <div id="previewContent" class="p-4"></div>
+                        </div>
+                        <div id="previewPlaceholder" class="d-flex align-items-center justify-content-center h-100 text-muted">
+                            <div class="text-center">
+                                <i class="bi bi-file-earmark-text display-1 mb-3"></i>
+                                <h5>Preview will appear here</h5>
+                                <p>Fill out the form to see your resume preview</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="/static/js/maker.js"></script>
-</body>
-</html>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Processing your resume...</h5>
+                <p class="text-muted mb-0">This may take a few moments</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.section-card {
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.section-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.entry {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+    position: relative;
+}
+
+.entry .remove-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+}
+
+.preview-container {
+    max-height: 80vh;
+    overflow-y: auto;
+    background: white;
+}
+
+#previewContent {
+    font-family: 'Times New Roman', serif;
+    line-height: 1.4;
+    color: #333;
+}
+
+#previewContent h2 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+#previewContent h3 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 1.5rem 0 0.5rem 0;
+    color: var(--primary-color);
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.25rem;
+}
+
+#previewContent ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+#previewContent li {
+    margin-bottom: 0.25rem;
+}
+
+.skills-group input {
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 991px) {
+    .container-fluid {
+        padding: 0 15px;
+    }
+    
+    .card-body {
+        max-height: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/maker.js') }}"></script>
+<script>
+// Enhanced form functionality
+function addExperience() {
+    const div = document.createElement("div");
+    div.className = "entry";
+    div.innerHTML = `
+        <button type="button" class="btn btn-sm btn-outline-danger remove-btn" onclick="this.parentElement.remove()">
+            <i class="bi bi-x"></i>
+        </button>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Job Title</label>
+                <input type="text" class="form-control" name="title" placeholder="Software Engineer">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Company</label>
+                <input type="text" class="form-control" name="company" placeholder="Tech Corp">
+            </div>
+            <div class="col-12 mb-3">
+                <label class="form-label">Duration</label>
+                <input type="text" class="form-control" name="duration" placeholder="Jan 2020 - Present">
+            </div>
+            <div class="col-12 mb-3">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="description" rows="3" placeholder="Brief description of your role..."></textarea>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Key Responsibilities</label>
+                <input type="text" class="form-control mb-2" name="responsibility" placeholder="Led development of web applications">
+                <input type="text" class="form-control" name="responsibility" placeholder="Collaborated with cross-functional teams">
+            </div>
+        </div>
+    `;
+    document.getElementById("experience").appendChild(div);
+}
+
+function addEducation() {
+    const div = document.createElement("div");
+    div.className = "entry";
+    div.innerHTML = `
+        <button type="button" class="btn btn-sm btn-outline-danger remove-btn" onclick="this.parentElement.remove()">
+            <i class="bi bi-x"></i>
+        </button>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Degree</label>
+                <input type="text" class="form-control" name="degree" placeholder="Bachelor of Science in Computer Science">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Institution</label>
+                <input type="text" class="form-control" name="institution" placeholder="University Name">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Year</label>
+                <input type="text" class="form-control" name="year" placeholder="2020">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">GPA (Optional)</label>
+                <input type="text" class="form-control" name="gpa" placeholder="3.8/4.0">
+            </div>
+        </div>
+    `;
+    document.getElementById("education").appendChild(div);
+}
+
+function addProject() {
+    const div = document.createElement("div");
+    div.className = "entry";
+    div.innerHTML = `
+        <button type="button" class="btn btn-sm btn-outline-danger remove-btn" onclick="this.parentElement.remove()">
+            <i class="bi bi-x"></i>
+        </button>
+        <div class="row">
+            <div class="col-md-8 mb-3">
+                <label class="form-label">Project Name</label>
+                <input type="text" class="form-control" name="name" placeholder="E-commerce Website">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Project Link</label>
+                <input type="url" class="form-control" name="link" placeholder="https://github.com/...">
+            </div>
+            <div class="col-12">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="description" rows="3" placeholder="Describe your project, technologies used, and key achievements..."></textarea>
+            </div>
+        </div>
+    `;
+    document.getElementById("projects").appendChild(div);
+}
+
+function addSkill(groupName) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "form-control mb-2";
+    input.name = groupName + "[]";
+    input.placeholder = groupName.includes("1") ? "Technical Skill" : "Soft Skill";
+    
+    const container = groupName.includes("1") ? 
+        document.getElementById("technicalSkills") : 
+        document.getElementById("softSkills");
+    
+    container.insertBefore(input, container.lastElementChild);
+}
+
+// Initialize with one experience and education entry
+document.addEventListener("DOMContentLoaded", () => {
+    addExperience();
+    addEducation();
+    addProject();
+    
+    // GSAP Animations
+    gsap.from(".builder-icon", {
+        opacity: 0,
+        scale: 0,
+        duration: 0.6,
+        ease: "back.out(1.7)"
+    });
+
+    gsap.from(".card", {
+        opacity: 0,
+        y: 50,
+        duration: 0.8,
+        stagger: 0.2,
+        delay: 0.3,
+        ease: "power3.out"
+    });
+});
+</script>
+{% endblock %}

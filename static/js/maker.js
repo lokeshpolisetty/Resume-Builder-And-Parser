@@ -2,212 +2,273 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("resumeForm");
   const previewDiv = document.getElementById("preview");
   const previewContent = document.getElementById("previewContent");
+  const previewPlaceholder = document.getElementById("previewPlaceholder");
+  const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
 
-  // Function to clean LaTeX code into plain text
-  function cleanLatex(latex) {
-    return latex
-      .replace(/\\begin\{[^\}]+\}/g, "")
-      .replace(/\\end\{[^\}]+\}/g, "")
-      .replace(/\\[a-zA-Z]+\{([^\}]+)\}/g, "$1")
-      .replace(/\\[a-zA-Z]+\s?/g, "")
-      .replace(/[\$\\]/g, "")
-      .trim();
+  // Function to show/hide preview
+  function togglePreview(show) {
+    if (show) {
+      previewDiv.style.display = "block";
+      previewPlaceholder.style.display = "none";
+    } else {
+      previewDiv.style.display = "none";
+      previewPlaceholder.style.display = "flex";
+    }
   }
 
   // UPDATED updatePreview to construct and send JSON data
   async function updatePreview() {
-    // Build preview data explicitly
-    const formData = new FormData(form);
-    const data = {
-      personal_info: {
-        name: formData.get("name"),
-        email: formData.get("email"),
-        phone: formData.get("phone"),
-        github: formData.get("github"),
-        linkedin: formData.get("linkedin"),
-      },
-      summary: formData.get("summary"),
-      experience: [],
-      education: [],
-      projects: [],
-      skills: {
-        "Some Skills": formData.getAll("skills_group1[]"),
-        "Some More Skills": formData.getAll("skills_group2[]"),
-      },
-    };
-
-    document.querySelectorAll("#experience .entry").forEach((entry) => {
-      data.experience.push({
-        title: entry.querySelector("[name='title']").value,
-        company: entry.querySelector("[name='company']").value,
-        duration: entry.querySelector("[name='duration']").value,
-        description: entry.querySelector("[name='description']").value,
-        responsibilities: Array.from(
-          entry.querySelectorAll("[name='responsibility']")
-        ).map((i) => i.value),
-      });
-    });
-    document.querySelectorAll("#education .entry").forEach((entry) => {
-      data.education.push({
-        degree: entry.querySelector("[name='degree']").value,
-        institution: entry.querySelector("[name='institution']").value,
-        year: entry.querySelector("[name='year']").value,
-        gpa: entry.querySelector("[name='gpa']").value,
-      });
-    });
-    document.querySelectorAll("#projects .entry").forEach((entry) => {
-      data.projects.push({
-        name: entry.querySelector("[name='name']").value,
-        description: entry.querySelector("[name='description']").value,
-        link: entry.querySelector("[name='link']").value,
-      });
-    });
-
-    const payload = new FormData();
-    payload.append("data", JSON.stringify(data));
-    payload.append("preview", "true");
-
-    // Call the new HTML preview endpoint
-    const res = await fetch("/preview_html", { method: "POST", body: payload });
-    const result = await res.json();
-
-    if (result.preview) {
-      previewContent.innerHTML = result.preview;
-      previewDiv.style.display = "block";
-    }
-  }
-
-  // Throttle preview update during live typing (for example, every 800ms)
-  let previewTimer;
-  form.addEventListener("input", () => {
-    clearTimeout(previewTimer);
-    previewTimer = setTimeout(updatePreview, 800);
-  });
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const isPreview = e.submitter.name === "preview";
-    if (isPreview) {
-      updatePreview();
-    } else {
-      // If download PDF, use fetch to download and trigger file save without leaving the page.
+    try {
+      // Build preview data explicitly
       const formData = new FormData(form);
       const data = {
         personal_info: {
-          name: formData.get("name"),
-          email: formData.get("email"),
-          phone: formData.get("phone"),
-          github: formData.get("github"),
-          linkedin: formData.get("linkedin"),
+          name: formData.get("name") || "",
+          email: formData.get("email") || "",
+          phone: formData.get("phone") || "",
+          github: formData.get("github") || "",
+          linkedin: formData.get("linkedin") || "",
         },
-        summary: formData.get("summary"),
+        summary: formData.get("summary") || "",
         experience: [],
         education: [],
         projects: [],
         skills: {
-          "Some Skills": formData.getAll("skills_group1[]"),
-          "Some More Skills": formData.getAll("skills_group2[]"),
+          "Technical Skills": formData.getAll("skills_group1[]").filter(skill => skill.trim()),
+          "Soft Skills": formData.getAll("skills_group2[]").filter(skill => skill.trim()),
         },
       };
 
+      // Collect experience data
       document.querySelectorAll("#experience .entry").forEach((entry) => {
-        data.experience.push({
-          title: entry.querySelector("[name='title']").value,
-          company: entry.querySelector("[name='company']").value,
-          duration: entry.querySelector("[name='duration']").value,
-          description: entry.querySelector("[name='description']").value,
-          responsibilities: Array.from(
-            entry.querySelectorAll("[name='responsibility']")
-          ).map((i) => i.value),
-        });
+        const title = entry.querySelector("[name='title']")?.value || "";
+        const company = entry.querySelector("[name='company']")?.value || "";
+        const duration = entry.querySelector("[name='duration']")?.value || "";
+        const description = entry.querySelector("[name='description']")?.value || "";
+        
+        if (title || company) {
+          data.experience.push({
+            title,
+            company,
+            duration,
+            description,
+            responsibilities: Array.from(
+              entry.querySelectorAll("[name='responsibility']")
+            ).map((i) => i.value).filter(resp => resp.trim()),
+          });
+        }
       });
+
+      // Collect education data
       document.querySelectorAll("#education .entry").forEach((entry) => {
-        data.education.push({
-          degree: entry.querySelector("[name='degree']").value,
-          institution: entry.querySelector("[name='institution']").value,
-          year: entry.querySelector("[name='year']").value,
-          gpa: entry.querySelector("[name='gpa']").value,
-        });
+        const degree = entry.querySelector("[name='degree']")?.value || "";
+        const institution = entry.querySelector("[name='institution']")?.value || "";
+        const year = entry.querySelector("[name='year']")?.value || "";
+        const gpa = entry.querySelector("[name='gpa']")?.value || "";
+        
+        if (degree || institution) {
+          data.education.push({
+            degree,
+            institution,
+            year,
+            gpa,
+          });
+        }
       });
+
+      // Collect projects data
       document.querySelectorAll("#projects .entry").forEach((entry) => {
-        data.projects.push({
-          name: entry.querySelector("[name='name']").value,
-          description: entry.querySelector("[name='description']").value,
-          link: entry.querySelector("[name='link']").value,
-        });
+        const name = entry.querySelector("[name='name']")?.value || "";
+        const description = entry.querySelector("[name='description']")?.value || "";
+        const link = entry.querySelector("[name='link']")?.value || "";
+        
+        if (name || description) {
+          data.projects.push({
+            name,
+            description,
+            link,
+          });
+        }
       });
 
       const payload = new FormData();
       payload.append("data", JSON.stringify(data));
-      payload.append("preview", "false");
 
-      const res = await fetch("/builder", { method: "POST", body: payload });
+      // Call the HTML preview endpoint
+      const res = await fetch("/preview_html", { method: "POST", body: payload });
       const result = await res.json();
 
-      if (result.download) {
-        // Fetch file as a blob and trigger download without leaving the page.
-        const fileRes = await fetch("/download/" + result.download);
-        const blob = await fileRes.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "resume.pdf";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-        alert("PDF downloaded successfully!");
-      } else {
-        alert(result.error || "Unknown error");
+      if (result.preview) {
+        previewContent.innerHTML = result.preview;
+        togglePreview(true);
+      } else if (result.error) {
+        console.error("Preview error:", result.error);
+        togglePreview(false);
+      }
+    } catch (error) {
+      console.error("Error updating preview:", error);
+      togglePreview(false);
+    }
+  }
+
+  // Throttle preview update during live typing
+  let previewTimer;
+  form.addEventListener("input", () => {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(updatePreview, 1000);
+  });
+
+  // Form submission handler
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const isPreview = e.submitter.name === "preview";
+    
+    if (isPreview) {
+      updatePreview();
+    } else {
+      // Show loading modal
+      loadingModal.show();
+      
+      try {
+        // Build data for PDF generation
+        const formData = new FormData(form);
+        const data = {
+          personal_info: {
+            name: formData.get("name") || "",
+            email: formData.get("email") || "",
+            phone: formData.get("phone") || "",
+            github: formData.get("github") || "",
+            linkedin: formData.get("linkedin") || "",
+          },
+          summary: formData.get("summary") || "",
+          experience: [],
+          education: [],
+          projects: [],
+          skills: {
+            "Technical Skills": formData.getAll("skills_group1[]").filter(skill => skill.trim()),
+            "Soft Skills": formData.getAll("skills_group2[]").filter(skill => skill.trim()),
+          },
+        };
+
+        // Collect all data (same as preview)
+        document.querySelectorAll("#experience .entry").forEach((entry) => {
+          const title = entry.querySelector("[name='title']")?.value || "";
+          const company = entry.querySelector("[name='company']")?.value || "";
+          const duration = entry.querySelector("[name='duration']")?.value || "";
+          const description = entry.querySelector("[name='description']")?.value || "";
+          
+          if (title || company) {
+            data.experience.push({
+              title,
+              company,
+              duration,
+              description,
+              responsibilities: Array.from(
+                entry.querySelectorAll("[name='responsibility']")
+              ).map((i) => i.value).filter(resp => resp.trim()),
+            });
+          }
+        });
+
+        document.querySelectorAll("#education .entry").forEach((entry) => {
+          const degree = entry.querySelector("[name='degree']")?.value || "";
+          const institution = entry.querySelector("[name='institution']")?.value || "";
+          const year = entry.querySelector("[name='year']")?.value || "";
+          const gpa = entry.querySelector("[name='gpa']")?.value || "";
+          
+          if (degree || institution) {
+            data.education.push({
+              degree,
+              institution,
+              year,
+              gpa,
+            });
+          }
+        });
+
+        document.querySelectorAll("#projects .entry").forEach((entry) => {
+          const name = entry.querySelector("[name='name']")?.value || "";
+          const description = entry.querySelector("[name='description']")?.value || "";
+          const link = entry.querySelector("[name='link']")?.value || "";
+          
+          if (name || description) {
+            data.projects.push({
+              name,
+              description,
+              link,
+            });
+          }
+        });
+
+        const payload = new FormData();
+        payload.append("data", JSON.stringify(data));
+        payload.append("preview", "false");
+
+        const res = await fetch("/builder", { method: "POST", body: payload });
+        const result = await res.json();
+
+        loadingModal.hide();
+
+        if (result.download) {
+          // Create download link
+          const downloadUrl = `/download/pdf`;
+          const a = document.createElement("a");
+          a.href = downloadUrl;
+          a.download = "resume.pdf";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          
+          // Show success message
+          const alert = document.createElement('div');
+          alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+          alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+          alert.innerHTML = `
+            <i class="bi bi-check-circle-fill me-2"></i>
+            PDF generated successfully!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          `;
+          document.body.appendChild(alert);
+          
+          // Auto remove after 5 seconds
+          setTimeout(() => {
+            if (alert.parentNode) {
+              alert.remove();
+            }
+          }, 5000);
+        } else {
+          throw new Error(result.error || "Unknown error occurred");
+        }
+      } catch (error) {
+        loadingModal.hide();
+        console.error("Error generating PDF:", error);
+        
+        // Show error message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+        alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alert.innerHTML = `
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          Error generating PDF: ${error.message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alert);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+          if (alert.parentNode) {
+            alert.remove();
+          }
+        }, 5000);
       }
     }
   });
+
+  // Initial preview update if form has data
+  setTimeout(() => {
+    const hasData = form.querySelector('input[name="name"]').value.trim();
+    if (hasData) {
+      updatePreview();
+    }
+  }, 500);
 });
-
-function addExperience() {
-  const div = document.createElement("div");
-  div.className = "entry";
-  div.innerHTML = `
-        <input name="title" placeholder="Title">
-        <input name="company" placeholder="Company">
-        <input name="duration" placeholder="Duration">
-        <textarea name="description" placeholder="Description"></textarea>
-        <input name="responsibility" placeholder="Responsibility">
-        <input name="responsibility" placeholder="Responsibility">
-    `;
-  document.getElementById("experience").appendChild(div);
-}
-
-function addEducation() {
-  const div = document.createElement("div");
-  div.className = "entry";
-  div.innerHTML = `
-        <input name="degree" placeholder="Degree">
-        <input name="institution" placeholder="Institution">
-        <input name="year" placeholder="Year">
-        <input name="gpa" placeholder="GPA (optional)">
-    `;
-  document.getElementById("education").appendChild(div);
-}
-
-function addProject() {
-  const div = document.createElement("div");
-  div.className = "entry";
-  div.innerHTML = `
-        <input name="name" placeholder="Project Name">
-        <textarea name="description" placeholder="Project Description"></textarea>
-        <input name="link" placeholder="Project Link (optional)">
-    `;
-  document.getElementById("projects").appendChild(div);
-}
-
-function addSkill(groupName) {
-  const input = document.createElement("input");
-  input.name = groupName + "[]";
-  input.placeholder = groupName.includes("1")
-    ? "Technical Skill"
-    : "Soft Skill";
-  document
-    .querySelector(`[name='${groupName}[]']`)
-    .parentNode.appendChild(input);
-}

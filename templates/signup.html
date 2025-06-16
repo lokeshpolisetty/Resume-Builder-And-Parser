@@ -1,27 +1,108 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Resume Wizard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}"> <!-- Reuse login CSS -->
-</head>
-<body>
-    <main>
-        <div class="login-container">
-            <h1>Sign Up</h1>
-            {% if error %}
-                <div class="error">{{ error }}</div>
-            {% endif %}
-            <form method="POST">
-                <input type="text" name="username" placeholder="Username" required aria-label="Username">
-                <input type="password" name="password" placeholder="Password" required aria-label="Password">
-                <button type="submit">Sign Up</button>
-                <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
-            </form>
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Resume Wizard{% endblock %}
+
+{% block content %}
+<div class="auth-section min-vh-100 d-flex align-items-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <div class="auth-icon bg-gradient-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="bi bi-person-plus-fill fs-2"></i>
+                            </div>
+                            <h2 class="fw-bold">Create Account</h2>
+                            <p class="text-muted">Join Resume Wizard today</p>
+                        </div>
+
+                        {% if error %}
+                        <div class="alert alert-danger d-flex align-items-center" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            {{ error }}
+                        </div>
+                        {% endif %}
+
+                        <form method="POST" class="auth-form">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-person"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0" id="username" name="username" placeholder="Choose a username" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-lock"></i>
+                                    </span>
+                                    <input type="password" class="form-control border-start-0" id="password" name="password" placeholder="Create a password" required>
+                                    <button class="btn btn-outline-secondary border-start-0" type="button" id="togglePassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">
+                                    <small class="text-muted">Password should be at least 6 characters long</small>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100 mb-3">
+                                <i class="bi bi-person-plus me-2"></i>Create Account
+                            </button>
+                        </form>
+
+                        <div class="text-center">
+                            <p class="mb-0">
+                                Already have an account? 
+                                <a href="{{ url_for('login') }}" class="text-decoration-none fw-semibold">
+                                    Sign In
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </main>
-    <script src="{{ url_for('static', filename='lib/gsap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
-</body>
-</html>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Password toggle
+    const togglePassword = document.getElementById('togglePassword');
+    const password = document.getElementById('password');
+
+    togglePassword.addEventListener('click', () => {
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        
+        const icon = togglePassword.querySelector('i');
+        icon.classList.toggle('bi-eye');
+        icon.classList.toggle('bi-eye-slash');
+    });
+
+    // GSAP Animation
+    gsap.from(".card", {
+        opacity: 0,
+        scale: 0.9,
+        duration: 0.8,
+        ease: "power3.out"
+    });
+
+    gsap.from(".auth-icon", {
+        opacity: 0,
+        scale: 0,
+        duration: 0.6,
+        delay: 0.3,
+        ease: "back.out(1.7)"
+    });
+});
+</script>
+{% endblock %}
